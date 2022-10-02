@@ -1,11 +1,7 @@
 from pptx import Presentation
 from pptx.util import Pt
-
-
-def make_pptx():
-    prs = Presentation('src/template.pptx')
-    parse_pptx(prs)
-    prs.save('out/prs.pptx')
+from pptx.chart.data import CategoryChartData, ChartData
+from pptx.enum.chart import XL_CHART_TYPE, XL_LABEL_POSITION, XL_LEGEND_POSITION
 
 
 def add_text_box(slide, text, left, top, width=None, height=None, font_size=28):
@@ -26,36 +22,43 @@ def add_table(slide, data: list, left, top, width, height):
         for j in range(cols):
             cell = table.cell(i, j)
             cell.text = str(data[i][j])
+    return table
 
 
 def add_picture(slide, path, left, top, width=None, height=None):
     slide.shapes.add_picture(path, Pt(left), Pt(top), Pt(width), Pt(height))
 
 
-def parse_pptx(prs):
-    for slide in prs.slides:
-        for shape in slide.shapes:
-            if shape.has_chart:
-                x = 0
-            elif shape.has_table and shape.name == 'Таблица 2':
-                table = shape.table
-                cell = table.cell(1, 1)
-                cell.text = '100%'
+def add_bar_plot(slide, categories, series, left, top, width, height):
+    chart_data = CategoryChartData()
+    chart_data.categories = categories
+    chart_data.add_series('Series 1', series)
 
-                cell = table.cell(1, 2)
-                cell.text = '100%'
+    # add chart to slide --------------------
+    slide.shapes.add_chart(
+        XL_CHART_TYPE.COLUMN_CLUSTERED, Pt(left), Pt(
+            top), Pt(width), Pt(height), chart_data
+    )
 
-                cell = table.cell(1, 3)
-                cell.text = '100%'
 
-                cell = table.cell(2, 1)
-                cell.text = '100%'
+def add_pie_plot(slide, categories, series, left, top, width, height):
+    chart_data = ChartData()
+    chart_data.categories = categories
+    chart_data.add_series('Series 1', series)
 
-                cell = table.cell(2, 2)
-                cell.text = '100%'
+    chart = slide.shapes.add_chart(
+        XL_CHART_TYPE.PIE, Pt(left), Pt(top), Pt(width), Pt(height), chart_data
+    ).chart
 
-                cell = table.cell(2, 3)
-                cell.text = '100%'
+    chart.has_legend = True
+    chart.legend.position = XL_LEGEND_POSITION.BOTTOM
+    chart.legend.include_in_layout = False
+
+    chart.plots[0].has_data_labels = True
+    data_labels = chart.plots[0].data_labels
+    data_labels.number_format = '0%'
+    data_labels.position = XL_LABEL_POSITION.OUTSIDE_END
+    return chart
 
 
 def make_test_presentation():
@@ -82,6 +85,14 @@ def make_test_presentation():
         [100, 100, 100, 100, 100]
     ]
     add_table(slide_1, data, 50, 100, 800, 200)
+    categories = ['АЭМ', 'ЯОК', 'КРЭА', 'АСЭ', 'АРМЗ', 'ТВЭЛ', 'Итого']
+    series = [66.67,	75,	75,	83.3,	84.6,	87.5,	81.82]
+    add_bar_plot(slide_1, categories, series, 50, 350, 800, 250)
+
+    categories_pie = ['Всего', 'Со сроком на 25.07',
+                      'Исполнено', 'Неисполнено']
+    series = [184, 88, 61, 21]
+    add_pie_plot(slide_1, categories_pie, series, 900, 100, 350, 350)
     prs.save('out/new.pptx')
 
 
