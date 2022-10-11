@@ -2,6 +2,7 @@ from pptx import Presentation
 from pptx.util import Pt
 from pptx.chart.data import CategoryChartData, ChartData
 from pptx.enum.chart import XL_CHART_TYPE, XL_LABEL_POSITION, XL_LEGEND_POSITION
+import json
 
 
 def add_text_box(slide, text, left, top, width=None, height=None, font_size=28):
@@ -98,3 +99,4 @@ def make_test_presentation():
 
 if __name__ == '__main__':
     make_test_presentation()
+    # 123
